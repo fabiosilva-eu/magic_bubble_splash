@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { SoundFX } from './Audio';
-import { BubbleManager } from './BubbleManager';
+import { BubbleManager, type BubbleDifficulty } from './BubbleManager';
 import { MagicWorld } from './MagicWorld';
 import { SpatialUI, type MenuAction } from './SpatialMenu';
 import { VRInput } from './VRInput';
@@ -47,6 +47,7 @@ export class Game {
   private mode: GameMode = 'timed';
   private score = 0;
   private timeLeft = TIMED_DURATION;
+  private roundElapsed = 0;
   private bubblesPopped = 0;
   private milestonesHit = 0;
   private nextMilestone = 100;
@@ -169,6 +170,7 @@ export class Game {
 
   private goToMenu(): void {
     this.state = 'menu';
+    this.roundElapsed = 0;
     this.waterStream.clear();
     this.spatialUI.setScreen('menu');
     this.vrInput.setMenuRayVisible(true);
@@ -179,6 +181,7 @@ export class Game {
     this.mode = mode;
     this.state = 'playing';
     this.score = 0;
+    this.roundElapsed = 0;
     this.bubblesPopped = 0;
     this.milestonesHit = 0;
     this.nextMilestone = 100;
@@ -325,6 +328,18 @@ export class Game {
     }
   }
 
+  private getBubbleDifficulty(): BubbleDifficulty | undefined {
+    if (this.state !== 'playing' || this.mode !== 'milestone') {
+      return undefined;
+    }
+
+    return {
+      speedMultiplier: 1 + Math.min(1.5, this.roundElapsed / 60),
+      maxBubbles: Math.max(7, Math.round(18 - this.roundElapsed / 9)),
+      spawnInterval: 0.42 + Math.min(0.53, this.roundElapsed / 150),
+    };
+  }
+
   private tick(): void {
     const dt = Math.min(this.clock.getDelta(), 0.1);
     const elapsed = this.clock.elapsedTime;
@@ -337,6 +352,7 @@ export class Game {
     this.waterStream.update(dt);
 
     if (this.state === 'playing') {
+      this.roundElapsed += dt;
       this.timeLeft -= dt;
       if (this.timeLeft <= 0) {
         this.timeLeft = 0;
@@ -367,6 +383,7 @@ export class Game {
         this.checkMilestones();
         this.syncHUDText();
       },
+      this.getBubbleDifficulty(),
     );
 
     this.renderer.render(this.scene, this.camera);

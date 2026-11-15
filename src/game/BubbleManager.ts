@@ -7,6 +7,12 @@ export interface BubblePopEvent {
   colorHex: number;
 }
 
+export interface BubbleDifficulty {
+  speedMultiplier?: number;
+  maxBubbles?: number;
+  spawnInterval?: number;
+}
+
 interface SoapBubble {
   mesh: THREE.Mesh;
   radius: number;
@@ -106,16 +112,21 @@ export class BubbleManager {
     droplets: WaterDroplet[],
     canPop: boolean,
     onPop: (event: BubblePopEvent) => void,
+    difficulty?: BubbleDifficulty,
   ): void {
+    const speedMultiplier = difficulty?.speedMultiplier ?? 1;
+    const maxBubbles = difficulty?.maxBubbles ?? this.maxBubbles;
+    const spawnInterval = difficulty?.spawnInterval ?? 0.42;
+
     this.spawnTimer -= dt;
-    if (this.spawnTimer <= 0 && this.bubbles.length < this.maxBubbles) {
+    if (this.spawnTimer <= 0 && this.bubbles.length < maxBubbles) {
       this.spawnBubble();
-      this.spawnTimer = 0.42;
+      this.spawnTimer = spawnInterval;
     }
 
     for (let i = this.bubbles.length - 1; i >= 0; i--) {
       const b = this.bubbles[i];
-      b.mesh.position.y += b.riseSpeed * dt;
+      b.mesh.position.y += b.riseSpeed * speedMultiplier * dt;
       b.mesh.position.x = b.baseX + Math.sin(elapsed * b.swayFreq + b.phase) * b.swayAmp;
       b.mesh.position.z = b.baseZ + Math.cos(elapsed * b.swayFreq * 0.8 + b.phase) * (b.swayAmp * 0.6);
 
