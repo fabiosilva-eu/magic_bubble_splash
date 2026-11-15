@@ -49,3 +49,8 @@ npm run preview
 - **Standalone headset (e.g., Meta Quest) on the same Wi-Fi**:
   - Run `npm run dev` and open the `https://<your-lan-ip>:5173` Network URL printed by Vite in the headset browser, then accept the self-signed certificate prompt.
   - Alternatively, over USB with ADB: `adb reverse tcp:5173 tcp:5173` and open `https://localhost:5173`.
+
+## License
+
+Licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0-or-later)](LICENSE).
+
